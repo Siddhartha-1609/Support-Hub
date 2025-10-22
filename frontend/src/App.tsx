@@ -1,17 +1,28 @@
-// ...existing code...
-import ChatWindow from "./components/ChatWindow";
 import { useEffect, useState } from "react";
+import ChatWindow from "./components/ChatWindow";
 
 function App() {
+  const API_BASE = "http://localhost:8000/api";
+
   const [ticketId, setTicketId] = useState<number | null>(null);
 
   useEffect(() => {
-    // Fetch the latest ticket ID from backend
-    fetch("/api/tickets/latest")
-      .then((res) => res.json())
-      .then((data) => setTicketId(data.id))
-      .catch(() => setTicketId(null));
-  }, []);
+  fetch(`${API_BASE}/tickets/latest/`)
+    .then((res) => {
+      console.log(res);
+      return res.json();
+    })
+    .then((data) => {
+      console.log(data);
+      setTicketId(data.id);
+    })
+    .catch((err) => {
+      console.error("Error fetching ticket:", err);
+      setTicketId(null);
+    });
+}, []);
+
+
 
   return (
     <div>

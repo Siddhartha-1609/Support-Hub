@@ -54,6 +54,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -154,3 +155,7 @@ CELERY_RESULT_BACKEND = os.getenv("REDIS_URL")
 COHERE_API_KEY = os.getenv("COHERE_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # optional fallback if you switch later
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Vite frontend
+]
+# CORS_ALLOW_ALL_ORIGINS = True

@@ -158,4 +158,4 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # optional fallback if you switch 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Vite frontend
 ]
-# CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = True

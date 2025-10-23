@@ -11,6 +11,7 @@ function App() {
   const [ticketId, setTicketId] = useState<number | null>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
 
+  // Fetch tickets
   const fetchTickets = async () => {
     try {
       const data = await getTickets();
@@ -25,6 +26,7 @@ function App() {
     fetchTickets();
   }, []);
 
+  // Create new ticket
   const handleNewChat = async () => {
     try {
       const newTicket = await createTicket("New Chat");
@@ -39,6 +41,7 @@ function App() {
     <div
       style={{
         display: "flex",
+        flexDirection: "row",
         height: "100vh",
         width: "100vw",
         background: "#f0edf7",
@@ -93,7 +96,7 @@ function App() {
           </div>
         ))}
 
-        {/* Sidebar scrollbar styling */}
+        {/* Sidebar Scrollbar */}
         <style>
           {`
             div::-webkit-scrollbar {
@@ -119,13 +122,25 @@ function App() {
         style={{
           flex: 1,
           display: "flex",
-          flexDirection: "column",
-          padding: "1rem 1.5rem 1rem 1rem", // extra right padding
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "1rem",
           overflow: "hidden",
         }}
       >
         {ticketId !== null ? (
-          <ChatWindow ticketId={ticketId} />
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "600px",
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              gap: "1rem",
+            }}
+          >
+            <ChatWindow ticketId={ticketId} />
+          </div>
         ) : (
           <p style={{ color: "#666", textAlign: "center" }}>Loading ticket...</p>
         )}

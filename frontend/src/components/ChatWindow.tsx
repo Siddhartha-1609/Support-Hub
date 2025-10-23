@@ -1,11 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-import { getMessages, getSuggestions, sendMessage } from "../api/chat";
+import axios from "axios";
+
+interface MessageType {
+  text: string;
+  sender: "user" | "ai";
+  timestamp?: string;
+}
+
+const API_BASE = "http://localhost:8000/api/chat";
 
 const ChatWindow: React.FC<{ ticketId: number }> = ({ ticketId }) => {
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<
-    { text: string; sender: string; timestamp?: string }[]
-  >([]);
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -13,51 +19,57 @@ const ChatWindow: React.FC<{ ticketId: number }> = ({ ticketId }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Fetch messages + suggestions on mount or ticket change
   useEffect(() => {
-    fetchMessages();
-    fetchSuggestionsFn();
-    const interval = setInterval(fetchSuggestionsFn, 8000);
-    return () => clearInterval(interval);
+    const fetchAll = async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/${ticketId}/messages/`);
+        setMessages(
+          res.data.messages.map((m: any) => ({
+            text: m.content,
+            sender: m.is_agent ? "ai" : "user",
+            timestamp: m.timestamp
+              ? new Date(m.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+              : undefined,
+          }))
+        );
+        setSuggestions(res.data.suggestions);
+      } catch (err) {
+        console.error("Error fetching messages:", err);
+      }
+    };
+    fetchAll();
   }, [ticketId]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages, suggestions]);
 
-  const fetchMessages = async () => {
-    try {
-      const data = await getMessages(ticketId);
-      const messagesWithTime = data.map((m: any) => ({
-        ...m,
-        timestamp:
-          m.timestamp ||
-          new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      }));
-      setMessages(messagesWithTime);
-    } catch (err) {
-      console.error("Failed to fetch messages:", err);
-    }
-  };
-
-  const fetchSuggestionsFn = async () => {
-    try {
-      const data = await getSuggestions(ticketId);
-      setSuggestions(data);
-    } catch (err) {
-      console.error("Failed to fetch suggestions:", err);
-    }
-  };
-
   const handleSend = async () => {
     if (!input.trim()) return;
+
+    const userText = input;
+    setInput("");
+
+    // Optimistic UI update
+    setMessages((prev) => [
+      ...prev,
+      { text: userText, sender: "user", timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
+    ]);
+
     try {
-      const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      await sendMessage(ticketId, input);
-      setMessages((prev) => [...prev, { text: input, sender: "user", timestamp }]);
-      setInput("");
-      fetchSuggestionsFn();
+      const res = await axios.post(`${API_BASE}/${ticketId}/send/`, { text: userText });
+      const aiText = res.data.ai_reply;
+      const newSuggestions = res.data.suggestions || [];
+
+      setMessages((prev) => [
+        ...prev,
+        { text: aiText, sender: "ai", timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
+      ]);
+
+      setSuggestions(newSuggestions);
     } catch (err) {
-      console.error("Failed to send message:", err);
+      console.error("Error sending message:", err);
     }
   };
 
@@ -81,28 +93,26 @@ const ChatWindow: React.FC<{ ticketId: number }> = ({ ticketId }) => {
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        width: "auto",
-        maxWidth: "100%",
+        width: "100%",
+        padding: "1rem",
         background: colors.chatBg,
         borderRadius: "16px",
-        padding: "1rem",
         overflow: "hidden",
-        boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
+        boxSizing: "border-box",
       }}
     >
-      {/* Messages container */}
+      {/* Messages */}
       <div
-        className="messages-container"
+        className="chat-window messages"
         style={{
           flex: 1,
           overflowY: "auto",
           display: "flex",
           flexDirection: "column",
           gap: "6px",
-          paddingTop: "12px",
-          paddingBottom: "12px",
-          paddingLeft: "8px",
+          marginBottom: "1rem",
           paddingRight: "8px",
+          paddingTop: "4px",
         }}
       >
         {messages.map((m, i) => (
@@ -128,27 +138,14 @@ const ChatWindow: React.FC<{ ticketId: number }> = ({ ticketId }) => {
             >
               {m.text}
             </span>
-            {m.timestamp && (
-              <small
-                style={{
-                  fontSize: "10px",
-                  color: "#777",
-                  marginTop: "2px",
-                }}
-              >
-                {m.timestamp}
-              </small>
-            )}
+            {m.timestamp && <small style={{ fontSize: "10px", color: "#777", marginTop: "2px" }}>{m.timestamp}</small>}
           </div>
         ))}
 
+        {/* Suggestions */}
         {suggestions.map((s, i) => (
-          <div
-            key={`sugg-${i}`}
-            style={{ display: "flex", justifyContent: "flex-start" }}
-          >
+          <div key={`sugg-${i}`} style={{ marginBottom: "4px" }}>
             <span
-              onClick={() => setInput(s)}
               style={{
                 background: colors.suggestion,
                 color: "#000",
@@ -156,8 +153,8 @@ const ChatWindow: React.FC<{ ticketId: number }> = ({ ticketId }) => {
                 padding: "6px 12px",
                 fontSize: "14px",
                 lineHeight: "1.4",
-                cursor: "pointer",
                 maxWidth: "70%",
+                display: "inline-block",
               }}
             >
               {s}
@@ -168,7 +165,7 @@ const ChatWindow: React.FC<{ ticketId: number }> = ({ ticketId }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input bar */}
+      {/* Input */}
       <div style={{ display: "flex", gap: "8px" }}>
         <input
           value={input}
@@ -207,18 +204,18 @@ const ChatWindow: React.FC<{ ticketId: number }> = ({ ticketId }) => {
       {/* Scrollbar styling */}
       <style>
         {`
-          .messages-container::-webkit-scrollbar {
+          .chat-window.messages::-webkit-scrollbar {
             width: 8px;
           }
-          .messages-container::-webkit-scrollbar-track {
+          .chat-window.messages::-webkit-scrollbar-track {
             background: #ECEAFF;
             border-radius: 4px;
           }
-          .messages-container::-webkit-scrollbar-thumb {
+          .chat-window.messages::-webkit-scrollbar-thumb {
             background-color: ${colors.scrollbar};
             border-radius: 4px;
           }
-          .messages-container::-webkit-scrollbar-thumb:hover {
+          .chat-window.messages::-webkit-scrollbar-thumb:hover {
             background-color: #8C6BFF;
           }
           ::placeholder {

@@ -56,39 +56,36 @@ const ChatWindow: React.FC<{ ticketId: number }> = ({ ticketId }) => {
     if (e.key === "Enter") handleSend();
   };
 
-  // Modern muted color palette
-  const userBlue = "#6c8edb";       // soft muted blue
-  const aiGray = "#e0e0e0";         // soft gray for AI messages
-  const sendBlue = "#5b7ac9";       // slightly darker for send button
+  // Option 3 – Lavender & Soft Gray
+  const userMsg = "#A18AFF";       // lavender
+  const aiMsg = "#F4F4F9";         // very light gray
+  const suggestion = "#DAD0FF";    // pastel lavender
+  const sendBtn = "#8C6BFF";       // muted lavender
+  const chatBg = "#FAF9FF";        // off-white
+  const scrollbar = "#A18AFF";     // matches user messages
 
   return (
     <div
-      className="chat-window"
       style={{
-        maxWidth: 500,
-        margin: "2rem auto",
-        border: `1px solid #ccc`,
-        borderRadius: "16px",
-        padding: "1rem",
         display: "flex",
         flexDirection: "column",
-        height: "550px",
-        background: "#fafafa",
-        fontFamily: "Arial, sans-serif",
-        color: "#000",
-        boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+        height: "450px",
+        background: chatBg,
+        borderRadius: "14px",
+        padding: "1rem",
+        overflow: "hidden",
       }}
     >
-      {/* Messages */}
+      {/* Messages + AI Suggestions */}
       <div
         className="messages"
         style={{
           flex: 1,
           overflowY: "auto",
-          marginBottom: "1rem",
-          padding: "0 10px",
           display: "flex",
           flexDirection: "column",
+          gap: "6px",
+          marginBottom: "1rem",
         }}
       >
         {messages.map((m, i) => (
@@ -97,16 +94,15 @@ const ChatWindow: React.FC<{ ticketId: number }> = ({ ticketId }) => {
             style={{
               display: "flex",
               justifyContent: m.sender === "user" ? "flex-end" : "flex-start",
-              margin: "6px 0",
             }}
           >
             <span
               style={{
-                background: m.sender === "user" ? userBlue : aiGray,
-                borderRadius: "14px",
-                padding: "10px 16px",
-                maxWidth: "70%",
+                background: m.sender === "user" ? userMsg : aiMsg,
                 color: m.sender === "user" ? "#fff" : "#000",
+                borderRadius: "12px",
+                padding: "8px 14px",
+                maxWidth: "70%",
                 fontSize: "14px",
                 lineHeight: "1.4",
               }}
@@ -115,39 +111,39 @@ const ChatWindow: React.FC<{ ticketId: number }> = ({ ticketId }) => {
             </span>
           </div>
         ))}
+
+        {/* Suggestions as bubbles */}
+        {suggestions.map((s, i) => (
+          <div
+            key={`sugg-${i}`}
+            style={{
+              display: "flex",
+              justifyContent: "flex-start",
+            }}
+          >
+            <span
+              onClick={() => setInput(s)}
+              style={{
+                background: suggestion,
+                color: "#000",
+                borderRadius: "12px",
+                padding: "6px 12px",
+                fontSize: "14px",
+                lineHeight: "1.4",
+                cursor: "pointer",
+                maxWidth: "70%",
+              }}
+            >
+              {s}
+            </span>
+          </div>
+        ))}
+
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Suggestions */}
-      {suggestions.length > 0 && (
-        <div className="suggestions" style={{ marginBottom: "1rem" }}>
-          <p style={{ fontWeight: "600", marginBottom: "8px", fontSize: "14px" }}>💡 Suggestions</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            {suggestions.map((s, i) => (
-              <button
-                key={i}
-                onClick={() => setInput(s)}
-                style={{
-                  alignSelf: "flex-start",
-                  border: "none",
-                  background: aiGray,
-                  borderRadius: "12px",
-                  padding: "6px 14px",
-                  cursor: "pointer",
-                  color: "#000",
-                  fontSize: "14px",
-                  textAlign: "left",
-                }}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Input */}
-      <div className="input-area" style={{ display: "flex", gap: "8px" }}>
+      <div style={{ display: "flex", gap: "8px" }}>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -157,47 +153,46 @@ const ChatWindow: React.FC<{ ticketId: number }> = ({ ticketId }) => {
             flex: 1,
             padding: "10px",
             borderRadius: "12px",
-            border: `1px solid ${userBlue}`,
-            background: userBlue,
+            border: `1px solid ${userMsg}`,
+            background: userMsg,
             color: "#fff",
             textAlign: "center",
             fontSize: "14px",
           }}
-          className="chat-input"
         />
         <button
           onClick={handleSend}
           style={{
             padding: "10px 18px",
             borderRadius: "12px",
-            background: sendBlue,
+            background: sendBtn,
             color: "#fff",
             border: "none",
-            fontWeight: "600",
-            cursor: "pointer",
+            fontWeight: 600,
             fontSize: "14px",
+            cursor: "pointer",
           }}
         >
           Send
         </button>
       </div>
 
-      {/* Scrollbar and placeholder styling */}
+      {/* Scrollbar styling */}
       <style>
         {`
           .chat-window .messages::-webkit-scrollbar {
             width: 8px;
           }
           .chat-window .messages::-webkit-scrollbar-track {
-            background: #f5f5f5;
+            background: #ECEAFF;
             border-radius: 4px;
           }
           .chat-window .messages::-webkit-scrollbar-thumb {
-            background-color: ${userBlue};
+            background-color: ${scrollbar};
             border-radius: 4px;
           }
           .chat-input::placeholder {
-            color: #d0d0d0;
+            color: #D9D6FF;
             opacity: 1;
           }
         `}

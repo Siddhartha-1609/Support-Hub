@@ -1,7 +1,9 @@
+# apps/tickets/views.py
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Ticket, Message
 
+# Latest ticket
 @api_view(['GET'])
 def latest_ticket(request):
     latest = Ticket.objects.order_by('-id').first()
@@ -13,6 +15,7 @@ def latest_ticket(request):
         })
     return Response({'id': None, 'title': None, 'metadata': None})
 
+# Messages endpoint
 @api_view(['GET', 'POST'])
 def ticket_messages(request, ticket_id):
     if request.method == 'GET':
@@ -27,6 +30,7 @@ def ticket_messages(request, ticket_id):
         Message.objects.create(ticket_id=ticket_id, text=text, sender="user")
         return Response({"status": "ok"})
 
+# AI suggestions endpoint
 @api_view(['GET'])
 def ticket_suggestions(request, ticket_id):
     suggestions = [
@@ -35,3 +39,30 @@ def ticket_suggestions(request, ticket_id):
         "Can you provide more details about the issue?"
     ]
     return Response(suggestions)
+
+# New endpoint: create ticket
+@api_view(['POST'])
+def create_ticket(request):
+    title = request.data.get('title', 'New Ticket')  # default title if not provided
+    metadata = request.data.get('metadata', {})
+
+    ticket = Ticket.objects.create(title=title, metadata=metadata)
+
+    return Response({
+        "id": ticket.id,
+        "title": ticket.title,
+        "metadata": ticket.metadata,
+    })
+
+@api_view(['GET'])
+def all_tickets(request):
+    tickets = Ticket.objects.order_by('-id')
+    data = [
+        {
+            "id": t.id,
+            "title": t.title,
+            "metadata": t.metadata
+        }
+        for t in tickets
+    ]
+    return Response(data)

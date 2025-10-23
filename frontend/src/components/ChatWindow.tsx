@@ -70,15 +70,17 @@ const ChatWindow: React.FC<{ ticketId: number }> = ({ ticketId }) => {
         display: "flex",
         flexDirection: "column",
         height: "450px",
+        width: "400px",
         background: chatBg,
         borderRadius: "14px",
         padding: "1rem",
         overflow: "hidden",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
       }}
     >
-      {/* Messages + AI Suggestions */}
+      {/* Messages + Suggestions */}
       <div
-        className="messages"
+        className="chat-window messages"
         style={{
           flex: 1,
           overflowY: "auto",
@@ -112,7 +114,7 @@ const ChatWindow: React.FC<{ ticketId: number }> = ({ ticketId }) => {
           </div>
         ))}
 
-        {/* Suggestions as bubbles */}
+        {/* Suggestions */}
         {suggestions.map((s, i) => (
           <div
             key={`sugg-${i}`}
@@ -180,14 +182,14 @@ const ChatWindow: React.FC<{ ticketId: number }> = ({ ticketId }) => {
       {/* Scrollbar styling */}
       <style>
         {`
-          .chat-window .messages::-webkit-scrollbar {
+          .chat-window.messages::-webkit-scrollbar {
             width: 8px;
           }
-          .chat-window .messages::-webkit-scrollbar-track {
+          .chat-window.messages::-webkit-scrollbar-track {
             background: #ECEAFF;
             border-radius: 4px;
           }
-          .chat-window .messages::-webkit-scrollbar-thumb {
+          .chat-window.messages::-webkit-scrollbar-thumb {
             background-color: ${scrollbar};
             border-radius: 4px;
           }

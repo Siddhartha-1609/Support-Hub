@@ -34,19 +34,15 @@ class SendMessageView(APIView):
         text = request.data.get("text")
         ticket = Ticket.objects.get(id=ticket_id)
 
-        # Save user message
         Message.objects.create(user=None, ticket=ticket, content=text, is_agent=False)
 
-        # Generate AI reply + suggestions
         ai_suggestions = suggest_replies(text)
         ai_reply = ai_suggestions[0]
         user_suggestions = ai_suggestions[1:]
 
-        # Save AI reply
         Message.objects.create(user=None, ticket=ticket, content=ai_reply, is_agent=True)
 
-        # Save suggestions in DB
-        Suggestion.objects.filter(ticket=ticket).delete()  # remove old suggestions
+        Suggestion.objects.filter(ticket=ticket).delete()
         for s in user_suggestions:
             Suggestion.objects.create(ticket=ticket, text=s)
 
